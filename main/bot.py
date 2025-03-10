@@ -1,14 +1,12 @@
-import telegram
-from telegram import Update,Bot, MenuButton
-from telegram.ext import Application, ApplicationBuilder,CommandHandler, CallbackQueryHandler
-from config import TOKEN
-from commands import start_command,reponce_to_answer
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from main.handlers.buildbot import start_build
+from main.mongo_connection.mogo_connetion import MongoDBConnection
 
 def main():
-    app = ApplicationBuilder().token(TOKEN).build()
-    app.add_handler(CommandHandler('start',start_command))
-    app.add_handler(CallbackQueryHandler(reponce_to_answer))
-    app.run_polling()
+    start_build()
+    db = MongoDBConnection()    
 
 if __name__ == "__main__":
-    main()
+    main() 
