@@ -1,5 +1,5 @@
 from main.mongo_connection.mogo_connetion import MongoDBConnection
-from pymongo import MongoClient, database
+from pymongo import MongoClient, database 
 
 class DailyTask:
     #Annotation 
@@ -7,7 +7,7 @@ class DailyTask:
     status:str
     description:str
     time_of_creation: str
-    time_to_finish: str
+    time_to_finish: str 
     exp_value: int
     
     user_id: str
@@ -31,7 +31,7 @@ class DailyTask:
         
         self.exp_value = 20
         
-        self.mongoDBclient = MongoDBConnection()
+        self.mongoDBclient = MongoDBConnection() 
         self.mongoDB = self.mongoDBclient.get_database()
         
     
@@ -48,7 +48,18 @@ class DailyTask:
         })
         return "<b>Task created succesfully<b>"
     
-    def load_all_tasks()->str:
+    def load_all_tasks(self)->str:
+        daily_task_col = self.mongoDB["DailyTasks"]
+        all_task_list = []
+        if daily_task_col.find({"user_id":self.user_id}):
+            tasks = daily_task_col.find({"user_id":self.user_id})
+            for i in tasks:
+                all_task_list.append(i)
+            print(all_task_list)
+        else:
+            print("no task")
+            
+        
         pass
     
     def finish_task():

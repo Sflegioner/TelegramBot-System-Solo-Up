@@ -20,8 +20,21 @@ async def save_task(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         await daily_task.save_to_mongoDB()
         await update.message.reply_text("Task saved successfully!")
     return ConversationHandler.END
-      
+    
 async def daily_task_by_system()->None:
+    print("all_task")
+    
+    
+    pass
+
+      
+async def show_all_task_by_user(update:Update, context:ContextTypes.DEFAULT_TYPE)->None:
+    print("all_task")
+    user_id = update.effective_user.id
+    tasks = DailyTask("start_command",user_id)
+    tasks.load_all_tasks()
+    
+    
     pass
     
 async def notify_daily_task()->None:
