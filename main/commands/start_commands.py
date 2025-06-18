@@ -1,8 +1,17 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup
-from telegram.ext import Application, ApplicationBuilder, ContextTypes, CommandHandler
+from telegram.ext import Application, ApplicationBuilder, ContextTypes, CommandHandler, ConversationHandler
 from main.commands.player_commands import send_player_stats
-from main.commands.daily_task_command import show_all_task_by_user
 from managers.player import Player
+
+
+#----------------------------------------------------------------------------------------------------------------------------------------#
+async def show_menu_options(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        KeyboardOption = [[
+            "📁stats", "✉️task", "❌penality", "⚙️options"
+        ]]
+        replyMarkup = ReplyKeyboardMarkup(keyboard=KeyboardOption,resize_keyboard=True)
+        await update.message.reply_text("So what now?",reply_markup=replyMarkup)
+        return ConversationHandler.END
 
 #----------------------------------------------------------------------------------------------------------------------------------------#
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -46,7 +55,7 @@ async def handle_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if text == "📁stats":
         await send_player_stats(update, context)
     elif text == "✉️task":
-        await show_all_task_by_user(update, context)
+        return 1
     elif text == "❌penality":
         await update.message.reply_text("Checking penalties...")
     elif text == "⚙️options":

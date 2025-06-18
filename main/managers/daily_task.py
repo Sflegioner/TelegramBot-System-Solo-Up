@@ -17,11 +17,8 @@ class DailyTask:
     mongoDB: database
     #-------------DB_Variables-----------------#
     
-    def __init__(self, description, user_id):
+    def __init__(self, user_id):
         #user insert
-        self.description = description
-        #user insert
-        
         self.id = 1
         self.user_id = user_id
         self.status = "Not finished yet"
@@ -34,7 +31,8 @@ class DailyTask:
         self.mongoDBclient = MongoDBConnection() 
         self.mongoDB = self.mongoDBclient.get_database()
         
-    
+    async def inset_descreption(self,description):
+        self.description = description
     
     async def save_to_mongoDB(self)->str:
         daily_task_col = self.mongoDB["DailyTasks"]
@@ -51,6 +49,7 @@ class DailyTask:
     def load_all_tasks(self)->str:
         daily_task_col = self.mongoDB["DailyTasks"]
         all_task_list = []
+        message =""
         if daily_task_col.find({"user_id":self.user_id}):
             tasks = daily_task_col.find({"user_id":self.user_id})
             for i in tasks:
@@ -59,12 +58,37 @@ class DailyTask:
         else:
             print("no task")
             
-        
-        pass
+        for idx, task in enumerate(all_task_list,start=1):
+            description = task.get("description", "...")
+            #Add
+            if task.get("status") == "finished":
+                message += f"{idx}) <s>{description}</s>\n"
+            else:
+                message += f"{idx}) {description}\n"
+        return message
     
-    def finish_task():
-        pass
-    
-    def reminder():
-        pass
-        
+    def get_task_by_number(self, task_number: int):
+        if task_number < 0:
+            return None
+        daily_task_col = self.mongoDB["DailyTasks"]
+        cursor = daily_task_col.find({"user_id": self.user_id}).sort("created_at").skip(task_number).limit(1)
+        return next(cursor, None)
+
+    def finish_task(self, task_number: int) -> str:
+            task = self.get_task_by_number(task_number)
+            if task:
+                self.mongoDB["DailyTasks"].update_one(
+                    {"_id": task["_id"]},
+                    {"$set": {"status": "finished"}}
+                )
+                return "finished"
+            return "task not found"
+
+    def delete_task(self, task_number: int) -> str:
+            task = self.get_task_by_number(task_number)
+            if task:
+                self.mongoDB["DailyTasks"].delete_one({"_id": task["_id"]})
+                print("task was deleted")
+                return "task was deleted"
+            print("no mached task")
+            return "task not found"
