@@ -1,4 +1,5 @@
 from pymongo import MongoClient
+import logging
 
 #Singleton 
 class MongoDBConnection:
@@ -11,11 +12,12 @@ class MongoDBConnection:
         return cls._instance
 
     def _init_db(self):
-        self.client = MongoClient("mongodb://localhost:27017")
+        logging.info("Connecting to MongoDB...")
+        self.client = MongoClient("mongodb+srv://stepanmereniuk_db_user:5J8rwrWFO9kTljXh@cluster0.kljtj8w.mongodb.net/?appName=Cluster0")
         self.database = self.client.get_database("SoloLevelingBotDB")
         self.player_col = self.database["Player"]  
         self.player_daily_tasks = self.database["DailyTasks"]
-        print("DB connected")
+        logging.info("Connected to MongoDB.")
 
     def get_database(self):
         return self.database

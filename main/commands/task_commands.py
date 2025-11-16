@@ -2,7 +2,9 @@ from telegram.ext import ContextTypes, ConversationHandler
 from telegram import ReplyKeyboardMarkup, Update
 from main.managers.daily_task import DailyTask
 from telegram.constants import ParseMode
-
+from .reminder_command import set_time_for_reminder
+from .player_commands import Player
+import os
 
 async def handle_task_entry(update:Update, context:ContextTypes.DEFAULT_TYPE)->int:
         KeyboardOption = [[
@@ -12,7 +14,7 @@ async def handle_task_entry(update:Update, context:ContextTypes.DEFAULT_TYPE)->i
         return 1 # For handling
 
 async def show_menu(update:Update, context:ContextTypes.DEFAULT_TYPE)->int:
-        keyboard_main = [["📁stats", "✉️task", "❌penality", "⚙️options"]]
+        keyboard_main = [["📁stats", "✉️task", "🏆leaders board$🏆", "⚙️options"]]
         reply_main = ReplyKeyboardMarkup(keyboard=keyboard_main, resize_keyboard=True)
         await update.message.reply_text("Back to main menu:", reply_markup=reply_main)
         ConversationHandler.END
@@ -54,8 +56,8 @@ async def create_daily_task(update: Update, context: ContextTypes.DEFAULT_TYPE) 
                 await daily_task.inset_descreption(task_from_user)
                 await daily_task.save_to_mongoDB()
                 await update.message.reply_text("Task saved successfully!")
-
-        await show_menu(update,context )
+        await set_time_for_reminder(context,60*60*12)#Time reminder
+        await show_menu(update,context)
         return ConversationHandler.END
     
 async def show_daily_task(update: Update, context: ContextTypes.DEFAULT_TYPE)->int:
@@ -65,21 +67,31 @@ async def show_daily_task(update: Update, context: ContextTypes.DEFAULT_TYPE)->i
         await update.message.reply_text(message, parse_mode=ParseMode.HTML)
 
 async def finish_daily_task(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        #TODO check if user have a task before 
         user_id = update.effective_user.id
+        user = Player()
+        user.login_player(user_id)
         user_message = update.message.text
         try:
                 user_number = int(user_message)- 1
                 if user_number < 0:
                         await update.message.reply_text("Task number must be 1 or more")
         except ValueError:
-                await update.message.reply_text("Please enter the number of task.")
+                await update.message.reply_text("Please enter the number of tasks")
                 return 1
         daily_task = DailyTask(user_id)
-        result = daily_task.finish_task(user_number)  
+        result = daily_task.finish_task(user_number)
+        result_after="Exp erned"  
         if result == "finished":
                 await update.message.reply_text("The task is completed ✅")
+                result_after = user.finish_task_award(20)
         else:
-                await update.message.reply_text("Failed to complete task ❌")
+                await update.message.reply_text("Failed to complete the task ❌")
+        if result_after == "Exp erned":
+                pass
+        else:
+                await update.message.reply_photo(photo="C:\GitProjects\SoloUP\TelegramBot-System-Solo-Up\main\photo_stock\lvl_up.png") #TODO Change this shit, avoid 4
+        await update.message.reply_html(result_after)
         await show_menu(update, context)
         return ConversationHandler.END
 

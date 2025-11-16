@@ -7,10 +7,10 @@ from managers.player import Player
 #----------------------------------------------------------------------------------------------------------------------------------------#
 async def show_menu_options(update: Update, context: ContextTypes.DEFAULT_TYPE):
         KeyboardOption = [[
-            "📁stats", "✉️task", "❌penality", "⚙️options"
+            "📁stats", "✉️task", "🏆leaders board$🏆", "⚙️options"
         ]]
         replyMarkup = ReplyKeyboardMarkup(keyboard=KeyboardOption,resize_keyboard=True)
-        await update.message.reply_text("So what now?",reply_markup=replyMarkup)
+        await update.effective_message.reply_markdown("So what now?",reply_markup=replyMarkup)
         return ConversationHandler.END
 
 #----------------------------------------------------------------------------------------------------------------------------------------#
@@ -45,7 +45,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         parse_mode="HTML")
     else:
         KeyboardOption = [[
-            "📁stats", "✉️task", "❌penality", "⚙️options"
+            "📁stats", "✉️task", "🏆leaders board$🏆", "⚙️options"
         ]]
         replyMarkup = ReplyKeyboardMarkup(keyboard=KeyboardOption,resize_keyboard=True)
         await update.message.reply_text("Wellcome back, Player, what about do something to feel much better?",reply_markup=replyMarkup)
@@ -56,7 +56,7 @@ async def handle_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await send_player_stats(update, context)
     elif text == "✉️task":
         return 1
-    elif text == "❌penality":
+    elif text == "🏆leaders board$🏆":
         await update.message.reply_text("Checking penalties...")
     elif text == "⚙️options":
         await update.message.reply_text("Opening options...")
@@ -66,13 +66,22 @@ async def handle_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def reponce_to_answer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     answer = update.callback_query
     await answer.answer()  
+        # Remove inline buttons
+    try:
+        await answer.message.edit_reply_markup(reply_markup=None)
+    except:
+        pass
+
     if answer.data == "yes":
         user_id = update.effective_chat.id
         username = update.effective_chat.username
         player = Player()
-        isAunth = player.register_new_player(user_id,username)
-        
-        await answer.message.reply_text("[System] \n Congratulations on becoming a Player.")
+        created = player.register_new_player(user_id, username)
+        if created:
+            await answer.message.reply_text("[System] \n Congratulations on becoming a Player.")
+        else:
+            await answer.message.reply_text("[System] \n You are already registered.")
+        await show_menu_options(update,context)
     else:
         await answer.message.reply_text("[System] \n YOUR HEART HAS BEEN STOPPED...")
         
